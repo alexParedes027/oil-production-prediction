@@ -33,6 +33,14 @@ data/raw/
 └── datos-de-fractura-de-pozos-de-hidrocarburos-adjunto-iv-actualizacin-diaria.csv
 ```
 
+Si el ZIP no está disponible, los archivos se pueden descargar desde la [carpeta compartida de Google Drive](https://drive.google.com/drive/folders/1l-TYX0l0IWjVZt5Qydmubce5VOd4KvU2?usp=sharing) ejecutando:
+
+```bash
+python descargar_datos.py
+```
+
+El script guarda los archivos en `data/raw/` y omite los que ya existen. Requiere el entorno virtual activo con las dependencias instaladas (ver [Entorno de trabajo](#entorno-de-trabajo)).
+
 Los archivos de `data/raw/` se mantienen sin modificar.
 
 ## Estructura del proyecto
@@ -48,6 +56,7 @@ oil-production-prediction/
 ├── src/              # Código reutilizable
 ├── reports/          # Gráficos, resultados y material de presentación
 │
+├── descargar_datos.py  # Descarga alternativa de los datos desde Google Drive
 ├── .gitignore
 ├── requirements.txt
 └── README.md
@@ -57,11 +66,15 @@ oil-production-prediction/
 
 El proyecto utiliza un entorno virtual de Python para mantener las mismas dependencias entre los integrantes.
 
+Se requiere **Python 3.11 o superior** (algunas dependencias, como `pandas` 3 y `numpy` 2.5, no funcionan con versiones anteriores).
+
 Crear el entorno:
 
 ```bash
 python -m venv .venv
 ```
+
+En macOS, el `python3` del sistema suele ser 3.9. Si usás pyenv, fijá primero una versión compatible con `pyenv local 3.12.7`.
 
 Activarlo en Windows:
 
@@ -69,12 +82,20 @@ Activarlo en Windows:
 .venv\Scripts\Activate.ps1
 ```
 
+Activarlo en macOS / Linux:
+
+```bash
+source .venv/bin/activate
+```
+
 Instalar las dependencias:
 
 ```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+Para usar el entorno en los notebooks de VS Code, seleccionar `.venv` como kernel con el botón **Select Kernel**.
 Las versiones de las principales librerías utilizadas se encuentran registradas en `requirements.txt`.
 
 ## Flujo de trabajo previsto
