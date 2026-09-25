@@ -6,8 +6,8 @@ Proyecto final del curso **EnergIA Digital – Data Science** de Fundación YPF.
 
 **Integrantes:**
 
-- Alex Paredes — DNI 43.790.733
-- Julián Varela — DNI XX.XXX.XXX
+- Alex Paredes
+- Julián Varela
 
 ## Objetivo
 
