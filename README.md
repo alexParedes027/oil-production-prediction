@@ -2,7 +2,7 @@
 
 Proyecto final del curso **EnergIA Digital – Data Science** de Fundación YPF.
 
-**Grupo:** [6]
+**Grupo: 6**
 
 **Integrantes:**
 
@@ -33,7 +33,7 @@ La carpeta compartida de Google Drive fue utilizada únicamente como medio de di
 
 Los datos representan información de pozos no convencionales de hidrocarburos en Argentina. Incluyen registros de producción de petróleo, gas y agua, características generales de los pozos e información relacionada con operaciones de fracturación y terminación.
 
-Los archivos fueron descargados el **[miércoles 16 de septiembre de 2026]**. El período temporal analizado comprende desde **[ noviembre de 2006]** hasta **[agosto de 2026]**, según las fechas disponibles en los archivos.
+Los archivos fueron descargados el **miércoles 16 de septiembre de 2026**. El período temporal analizado comprende desde **noviembre de 2006** hasta **agosto de 2026**, según las fechas disponibles en los archivos.
 
 ## Datasets utilizados
 
