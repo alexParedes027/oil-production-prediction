@@ -348,9 +348,12 @@ Actualmente se encuentran completadas las siguientes etapas:
 
 Como posibles etapas posteriores quedan:
 
-1. Desarrollar un análisis de clustering;
-2. Preparar el storytelling del proyecto;
-3. Preparar la presentación del trabajo.
+1. Desarrollar un modelo de clustering a partir de las variables seleccionadas;
+2. Justificar la elección del algoritmo y de las variables utilizadas;
+3. Analizar y mejorar los grupos obtenidos según un criterio explícito;
+4. Comparar los perfiles de pozos identificados;
+5. Preparar el storytelling y la presentación oral final;
+6. Documentar las conclusiones generales del proyecto.
 
 ---
 
