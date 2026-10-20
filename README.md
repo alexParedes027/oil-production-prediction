@@ -394,7 +394,7 @@ Para ejecutar las notebooks desde Visual Studio Code, se debe seleccionar el ent
 
 ---
 
-## Nota metodológica
+## Notas
 
 Las particiones se realizaron respetando el orden temporal para evitar utilizar información futura durante el entrenamiento.
 
