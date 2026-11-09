@@ -48,9 +48,9 @@ El proyecto se desarrolló en las siguientes etapas:
 3. Construcción de una tabla mensual integrada por pozo.
 4. Ingeniería de variables históricas y temporales.
 5. Definición del objetivo de producción del mes siguiente.
-6. Entrenamiento y evaluación de modelos de regresión y clasificación.
+6. Entrenamiento y evaluación de modelos de regresión y clasificación, con validación cruzada temporal y búsqueda de hiperparámetros mediante `GridSearchCV`.
 7. Construcción de perfiles agregados, uno por pozo, para clustering.
-8. Aplicación, evaluación e interpretación de DBSCAN.
+8. Aplicación, evaluación e interpretación de DBSCAN y comparación con clustering jerárquico.
 9. Análisis de resultados, limitaciones y conclusiones.
 
 ## 1. Análisis exploratorio de datos
@@ -76,6 +76,20 @@ El objetivo `prod_pet_mes_siguiente` representa la producción de petróleo del 
 
 Esta estrategia permite evaluar los modelos en un escenario más parecido al uso real.
 
+### Validación cruzada temporal y selección de hiperparámetros
+
+Para que la evaluación no dependa de una única ventana, ambos modelos supervisados utilizan una **validación cruzada temporal** con tres pliegues definidos por el mes del objetivo, dentro del período de entrenamiento:
+
+| Pliegue | Entrenamiento (objetivos) | Validación (objetivos) |
+| ------- | ------------------------- | ---------------------- |
+| 1       | febrero a julio de 2025   | agosto y septiembre de 2025 |
+| 2       | febrero a septiembre de 2025 | octubre y noviembre de 2025 |
+| 3       | febrero a noviembre de 2025 | diciembre de 2025 |
+
+Los pliegues siguen el esquema de `TimeSeriesSplit` (entrenamiento creciente y validación siempre posterior), pero se construyen por mes y no por posición de fila: como cada mes contiene miles de pozos, un corte por posición podría separar un mismo mes entre entrenamiento y validación. Descartamos una validación agrupada por pozo porque mezclaría meses y permitiría entrenar con información posterior a la evaluada.
+
+Sobre esos pliegues aplicamos **`GridSearchCV`** para seleccionar automáticamente el `alpha` de Ridge y la profundidad máxima (`max_depth`), el tamaño mínimo de hoja y la proporción de variables por división de los Random Forest, en lugar de fijarlos manualmente.
+
 ## 3. Modelo supervisado de regresión
 
 En `04_modelado_regresion.ipynb` comparamos un modelo de persistencia, Random Forest Regressor, Ridge y una estrategia de dos etapas basada en clasificación y regresión. La persistencia se utilizó como referencia y supone que la producción del próximo mes será igual a la del mes de corte.
@@ -85,9 +99,13 @@ El modelo final fue un **Random Forest Regressor**, porque superó la referencia
 | Modelo              | MAE (m³) | RMSE (m³) |    R² |
 | ------------------- | -------: | --------: | ----: |
 | Persistencia        |  166,195 |   551,710 | 0,820 |
-| Random Forest final |  133,039 |   393,443 | 0,908 |
+| Random Forest final |  133,616 |   394,712 | 0,908 |
 
-El modelo redujo aproximadamente un 20 % el MAE y un 29 % el RMSE respecto de la persistencia, y no produjo predicciones negativas. Luego se utilizó para estimar la producción de agosto de 2026 para 5.062 pozos. Esas predicciones no se evaluaron dentro de este trabajo porque el dataset utilizado llega hasta julio de 2026.
+El modelo redujo aproximadamente un 20 % el MAE y un 29 % el RMSE respecto de la persistencia, y no produjo predicciones negativas.
+
+`GridSearchCV` evaluó 16 combinaciones de Random Forest en los tres pliegues temporales y eligió `max_depth=None`, `min_samples_leaf=5` y `max_features=0.7`; limitar la profundidad a 8 niveles dio los peores resultados. En los pliegues, el Random Forest obtuvo un MAE promedio de 131,39 m³ (desvío 3,50) frente a 163,87 m³ de la persistencia, y la mejora se mantuvo en los tres períodos. Para Ridge, la búsqueda eligió `alpha=1000` evaluando el MAE con las predicciones negativas recortadas en cero; aun así, Ridge quedó lejos de Random Forest (MAE de 151,87 m³ contra 128,36 m³ en validación), lo que indica que la relación entre las variables y la producción futura no es lineal.
+
+Para estimar la producción de agosto de 2026 de 5.062 pozos, reentrenamos la configuración final con todos los objetivos conocidos, desde enero de 2020 hasta julio de 2026. Esas predicciones no se evaluaron dentro de este trabajo porque el dataset utilizado llega hasta julio de 2026.
 
 ## 4. Modelo supervisado de clasificación
 
@@ -97,11 +115,13 @@ El clasificador obtuvo los siguientes resultados en el conjunto de test:
 
 | Métrica           | Resultado |
 | ----------------- | --------: |
-| Accuracy          |     0,935 |
-| Balanced accuracy |     0,932 |
-| Precision macro   |     0,933 |
-| Recall macro      |     0,932 |
-| F1 macro          |     0,933 |
+| Accuracy          |     0,936 |
+| Balanced accuracy |     0,933 |
+| Precision macro   |     0,935 |
+| Recall macro      |     0,933 |
+| F1 macro          |     0,934 |
+
+En la validación cruzada temporal, el F1 macro fue de 0,933, 0,928 y 0,943 en los tres pliegues (promedio 0,935), frente a aproximadamente 0,18 de la referencia de clase mayoritaria. `GridSearchCV` evaluó 12 combinaciones de `max_depth`, `min_samples_leaf` y `max_features`, con resultados muy similares entre sí (F1 macro entre 0,934 y 0,935), por lo que el modelo es robusto a estos hiperparámetros; la configuración final usa `max_depth=None`, `min_samples_leaf=20` y `max_features=0.7`. Los valores faltantes se tratan igual que en la regresión: las categorías faltantes se representan como `"Sin dato"` y las variables numéricas imputadas llevan columnas indicadoras.
 
 Las métricas muestran un desempeño equilibrado entre las tres clases. La categoría `Media` fue la más difícil de distinguir porque se encuentra entre los niveles bajo y alto. También se generaron categorías estimadas para agosto de 2026, que no se evaluaron dentro del período disponible en este trabajo.
 
@@ -117,13 +137,24 @@ El Cluster 0 reúne los perfiles con mayor producción media y continuidad, prin
 
 Como controles complementarios, evaluamos PCA y la estabilidad del modelo. PCA produjo grupos muy desbalanceados, por lo que mantuvimos el modelo original. En diez muestras aleatorias del 80 % de los perfiles obtuvimos un ARI promedio de 0,897. Las variables categóricas se utilizaron después del clustering para describir los grupos, no para calcular las distancias.
 
+Como modelo alternativo aplicamos **clustering jerárquico aglomerativo** (enlace Ward) sobre las mismas 16 variables. A partir del dendrograma y de las métricas internas elegimos cuatro grupos. A diferencia de DBSCAN, el modelo asigna todos los pozos y divide el cluster dominante de DBSCAN (63,69 % de los pozos) en dos perfiles distintos:
+
+| Grupo jerárquico | Pozos | Perfil |
+| ---------------- | ----: | ------ |
+| 0 | 1.971 | Petrolíferos shale de alta producción, más jóvenes y profundos |
+| 1 | 1.454 | Maduros de baja producción continua, mayormente gasíferos y tight |
+| 2 |   692 | Sin producción de petróleo, mayormente gasíferos y tight |
+| 3 |   722 | Producción interrumpida: produjeron en parte de su historia pero no recientemente |
+
+Sobre los mismos pozos que DBSCAN asignó a un grupo, el modelo jerárquico obtuvo mejores métricas internas (silhouette de 0,424 contra 0,272 y Davies-Bouldin de 1,083 contra 1,136), aunque una estabilidad algo menor (ARI promedio de 0,861 contra 0,897). Por eso presentamos ambos modelos como complementarios: DBSCAN es más estable y detecta pozos atípicos, y el modelo jerárquico ofrece una segmentación completa y más detallada.
+
 ## 6. Conclusiones generales
 
-El análisis exploratorio nos permitió entender que las fuentes tenían distintos niveles de detalle, que la producción presentaba una distribución sesgada y que existían diferencias importantes según la cuenca, la formación y el tipo de pozo. A partir de esa observación, la regresión fue el enfoque principal: el Random Forest logró un R² de 0,908 y mejoró el MAE y el RMSE respecto del modelo de persistencia, por lo que resultó adecuado para estimar la producción del mes siguiente. La clasificación complementó esa predicción al ordenar los pozos en niveles bajo, medio y alto, con un F1 macro de 0,933 y un desempeño equilibrado entre las clases. Por su parte, DBSCAN permitió reconocer perfiles productivos diferentes: el Cluster 0 concentró los pozos con mayor producción y continuidad, mientras que los Clusters 2 y 3 reunieron principalmente perfiles gasíferos, con baja producción de petróleo y mayor presencia de recursos tight. En conjunto, el proyecto muestra que la historia productiva, las características del pozo y una preparación temporalmente consistente permiten construir predicciones útiles y obtener una visión más completa del comportamiento de los pozos.
+El análisis exploratorio nos permitió entender que las fuentes tenían distintos niveles de detalle, que la producción presentaba una distribución sesgada y que existían diferencias importantes según la cuenca, la formación y el tipo de pozo. A partir de esa observación, la regresión fue el enfoque principal: el Random Forest logró un R² de 0,908 y mejoró el MAE y el RMSE respecto del modelo de persistencia, por lo que resultó adecuado para estimar la producción del mes siguiente. La clasificación complementó esa predicción al ordenar los pozos en niveles bajo, medio y alto, con un F1 macro de 0,934 y un desempeño equilibrado entre las clases. En ambos modelos supervisados, la validación cruzada temporal mostró que la mejora frente a las referencias se mantiene en distintos períodos, y `GridSearchCV` permitió elegir los hiperparámetros de forma sistemática. Por su parte, DBSCAN permitió reconocer perfiles productivos diferentes: el Cluster 0 concentró los pozos con mayor producción y continuidad, mientras que los Clusters 2 y 3 reunieron principalmente perfiles gasíferos, con baja producción de petróleo y mayor presencia de recursos tight. El clustering jerárquico complementó ese análisis al separar, dentro del grupo más productivo de DBSCAN, los pozos petrolíferos de alta producción de los pozos maduros de baja producción continua. En conjunto, el proyecto muestra que la historia productiva, las características del pozo y una preparación temporalmente consistente permiten construir predicciones útiles y obtener una visión más completa del comportamiento de los pozos.
 
 ## 7. Limitaciones
 
-Los resultados dependen de la calidad y el período disponible de los datos, de las variables seleccionadas y de las decisiones de transformación. Las predicciones para agosto de 2026 no pudieron evaluarse porque el dataset llega hasta julio; además, DBSCAN es sensible a `eps`, `min_samples` y a la representación utilizada, y la construcción de un perfil por pozo resume la historia mensual y pierde parte de su detalle. La etiqueta de ruido no representa un grupo homogéneo, las variables categóricas se utilizaron para describir los clusters y no demuestran causalidad, y el estado y el sistema de extracción corresponden al último registro disponible hasta julio de 2026, no a toda la trayectoria del pozo.
+Los resultados dependen de la calidad y el período disponible de los datos, de las variables seleccionadas y de las decisiones de transformación. Las predicciones para agosto de 2026 no pudieron evaluarse porque el dataset llega hasta julio; además, DBSCAN es sensible a `eps`, `min_samples` y a la representación utilizada, el clustering jerárquico requiere fijar la cantidad de grupos y fue algo menos estable, la validación cruzada temporal se limita a tres pliegues de 2025 porque el período de entrenamiento principal comienza en febrero de 2025, y la construcción de un perfil por pozo resume la historia mensual y pierde parte de su detalle. La etiqueta de ruido no representa un grupo homogéneo, las variables categóricas se utilizaron para describir los clusters y no demuestran causalidad, y el estado y el sistema de extracción corresponden al último registro disponible hasta julio de 2026, no a toda la trayectoria del pozo.
 
 ## Resultados y archivos generados
 
