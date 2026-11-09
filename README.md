@@ -3,7 +3,11 @@
 Proyecto final del curso **EnergIA Digital – Data Science** de Fundación YPF.
 
 **Grupo:** 6
-**Integrantes:** Alex Paredes y Julián Varela
+
+**Integrantes:**
+
+- **Alex Paredes**
+- **Julián Varela**
 
 ## Resumen del proyecto
 
@@ -23,7 +27,9 @@ Los archivos originales son pesados y se mantienen fuera del control de versione
 
 ## Objetivo y preguntas de trabajo
 
-La pregunta principal fue: **Dadas las características de un pozo y su historial de producción, ¿cuánto petróleo esperamos que produzca durante el próximo mes?**
+La pregunta principal fue:
+
+> **Dadas las características de un pozo y su historial de producción, ¿cuánto petróleo esperamos que produzca durante el próximo mes?**
 
 Para responderla trabajamos con tres enfoques:
 
@@ -76,10 +82,10 @@ En `04_modelado_regresion.ipynb` comparamos un modelo de persistencia, Random Fo
 
 El modelo final fue un **Random Forest Regressor**, porque superó la referencia en el conjunto de test:
 
-| Modelo | MAE (m³) | RMSE (m³) | R² |
-|---|---:|---:|---:|
-| Persistencia | 166,195 | 551,710 | 0,820 |
-| Random Forest final | 133,039 | 393,443 | 0,908 |
+| Modelo              | MAE (m³) | RMSE (m³) |    R² |
+| ------------------- | -------: | --------: | ----: |
+| Persistencia        |  166,195 |   551,710 | 0,820 |
+| Random Forest final |  133,039 |   393,443 | 0,908 |
 
 El modelo redujo aproximadamente un 20 % el MAE y un 29 % el RMSE respecto de la persistencia, y no produjo predicciones negativas. Luego se utilizó para estimar la producción de agosto de 2026 para 5.062 pozos. Esas predicciones no se evaluaron dentro de este trabajo porque el dataset utilizado llega hasta julio de 2026.
 
@@ -89,13 +95,13 @@ En `05_modelado_clasificacion.ipynb` transformamos el objetivo futuro en tres ca
 
 El clasificador obtuvo los siguientes resultados en el conjunto de test:
 
-| Métrica | Resultado |
-|---|---:|
-| Accuracy | 0,935 |
-| Balanced accuracy | 0,932 |
-| Precision macro | 0,933 |
-| Recall macro | 0,932 |
-| F1 macro | 0,933 |
+| Métrica           | Resultado |
+| ----------------- | --------: |
+| Accuracy          |     0,935 |
+| Balanced accuracy |     0,932 |
+| Precision macro   |     0,933 |
+| Recall macro      |     0,932 |
+| F1 macro          |     0,933 |
 
 Las métricas muestran un desempeño equilibrado entre las tres clases. La categoría `Media` fue la más difícil de distinguir porque se encuentra entre los niveles bajo y alto. También se generaron categorías estimadas para agosto de 2026, que no se evaluaron dentro del período disponible en este trabajo.
 
@@ -149,15 +155,53 @@ oil-production-prediction/
 
 ## Instalación y reproducción
 
+### 1. Crear el entorno e instalar las dependencias
+
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
+```
+
+### 2. Descargar los datasets
+
+Los archivos originales se encuentran en la carpeta compartida de [Google Drive del proyecto](https://drive.google.com/drive/folders/1l-TYX0l0IWjVZt5Qydmubce5VOd4KvU2). También se pueden obtener desde el ZIP compartido por el equipo.
+
+Hay dos alternativas para incorporarlos al proyecto:
+
+**Opción A: descarga automática**
+
+```powershell
 python descargar_datos.py
 ```
 
-Después de disponer de los archivos en `data/raw/`, se deben ejecutar las notebooks en orden numérico, seleccionando `.venv` como kernel. La guía completa de cada transformación, modelo, métrica y decisión se encuentra dentro de las notebooks.
+El script descarga los archivos y los guarda automáticamente en `data/raw/`. Para utilizar esta opción, la carpeta de Google Drive debe estar disponible para su lectura.
+
+**Opción B: descarga manual**
+
+1. Descargar el ZIP o los archivos desde Google Drive.
+2. Descomprimirlos si es necesario.
+3. Copiarlos dentro de `data/raw/`.
+4. Verificar que los archivos originales mantengan sus nombres y no sean modificados.
+
+La carpeta `data/raw/` debe contener los archivos originales antes de ejecutar las notebooks. No es necesario subir estos archivos al repositorio, porque son pesados y están excluidos por `.gitignore`.
+
+### 3. Ejecutar las notebooks
+
+Después de disponer de los archivos en `data/raw/`, se deben ejecutar las notebooks en orden numérico, seleccionando `.venv` como kernel:
+
+```text
+01_exploracion_datos.ipynb
+02_preprocesamiento.ipynb
+03_feature_engineering.ipynb
+04_modelado_regresion.ipynb
+05_modelado_clasificacion.ipynb
+06_exploracion_clustering.ipynb
+07_modelado_clustering.ipynb
+```
+
+La guía completa de cada transformación, modelo, métrica y decisión se encuentra dentro de las notebooks.
 
 ## Entrega final y storytelling
 
