@@ -11,106 +11,137 @@ Proyecto final del curso **EnergIA Digital – Data Science** de Fundación YPF.
 
 ---
 
-## Objetivo del proyecto
+## Tema y objetivo
 
-El objetivo es analizar la producción de petróleo de pozos no convencionales de Argentina y desarrollar modelos de Machine Learning para estimar su comportamiento productivo.
+El proyecto analiza la producción de petróleo de pozos no convencionales de Argentina y aplica técnicas de análisis exploratorio, aprendizaje supervisado y aprendizaje no supervisado.
 
 La pregunta principal que buscamos responder es:
 
-> **Dadas las características de un pozo y su historial de producción, ¿cuánto petróleo esperamos que produzca el próximo mes?**
+> **Dadas las características de un pozo y su historial de producción, ¿cuánto petróleo esperamos que produzca durante el próximo mes?**
 
-El enfoque principal del proyecto es la **regresión**, ya que permite estimar directamente el volumen de producción esperado en metros cúbicos. Como complemento, también desarrollamos un modelo de **clasificación** para categorizar la producción futura en niveles bajo, medio y alto.
+Para responderla trabajamos con tres enfoques:
 
----
+- **Regresión:** estimar la producción de petróleo del mes siguiente en metros cúbicos.
+- **Clasificación:** categorizar la producción futura en niveles bajo, medio y alto.
+- **Clustering:** identificar perfiles de pozos con características productivas y operativas similares.
+
+La regresión es el enfoque principal porque responde directamente a la pregunta sobre la cantidad esperada de producción. La clasificación y el clustering complementan el análisis con una interpretación más general de los resultados.
 
 ## Fuentes de datos
 
-Los datos utilizados provienen de [Datos Argentina](https://www.datos.gob.ar/datasetproduccion-de-petroleo-y-gas-por-pozo), el portal oficial de datos abiertos del Gobierno de la República Argentina.
+Los datos fueron obtenidos del portal oficial de datos abiertos de la República Argentina, [Datos Argentina](https://www.datos.gob.ar/datasetproduccion-de-petroleo-y-gas-por-pozo).
 
-Se utilizaron tres fuentes principales:
+Se utilizaron principalmente las siguientes fuentes:
 
-- `produccin-de-pozos-de-gas-y-petrleo-no-convencional.csv`: contiene registros mensuales de producción de petróleo, gas, agua y otras variables operativas por pozo.
-- `capitulo-iv-pozos.csv`: contiene características generales de los pozos, como ubicación, profundidad, formación, cuenca, tipo de recurso y tipo de extracción.
-- `datos-de-fractura-de-pozos-de-hidrocarburos-adjunto-iv-actualizacin-diaria.csv`: contiene información relacionada con las operaciones de fracturación y terminación de los pozos.
+- `produccin-de-pozos-de-gas-y-petrleo-no-convencional.csv`: registros mensuales de producción de petróleo, gas, agua y otros indicadores por pozo.
+- `capitulo-iv-pozos.csv`: características generales de los pozos, como profundidad, formación, cuenca, provincia, tipo de pozo y tipo de extracción.
+- `datos-de-fractura-de-pozos-de-hidrocarburos-adjunto-iv-actualizacin-diaria.csv`: información relacionada con la fracturación y terminación de los pozos.
 
-El identificador utilizado para relacionar las distintas fuentes es `idpozo`.
+También se utilizaron archivos complementarios del mismo conjunto de datos para validar fechas de primera producción y obtener información histórica por cuenca y subtipo de recurso.
 
-Los archivos originales se descargaron y se mantienen localmente. La carpeta compartida del equipo se utilizó únicamente como medio de distribución entre los integrantes.
+El identificador utilizado para integrar las distintas fuentes es `idpozo`.
 
----
+Los archivos originales son pesados y se mantienen fuera del control de versiones. Se descargan mediante `descargar_datos.py` o se copian desde el ZIP compartido por el equipo dentro de `data/raw/`. La carpeta `data/raw/` conserva los archivos originales sin modificar.
 
 ## Estructura del repositorio
 
 ```text
 oil-production-prediction/
-│
-├── data/
-│   ├── raw/                              # Datos originales, sin modificar
-│   └── processed/                        # Datos procesados y datasets de modelado
-│
-├── notebooks/
-│   ├── 01_exploracion_datos.ipynb
-│   ├── 02_preprocesamiento.ipynb
-│   ├── 03_feature_engineering.ipynb
-│   ├── 04_modelado_regresion.ipynb
-│   └── 05_modelado_clasificacion.ipynb
-│
-├── src/                                  # Código reutilizable del proyecto
-├── reports/                              # Gráficos, resultados y material de presentación
-│
-├── descargar_datos.py                   # Descarga de los datasets
-├── requirements.txt                      # Dependencias del proyecto
-├── .gitignore
-├── README.md
-└── README2.md
+|
+|-- data/
+|   |-- raw/                              # Datos originales, sin modificar
+|   |-- processed/                        # Datos integrados y resultados
+|       |-- clustering/                   # Resultados del análisis no supervisado
+|
+|-- notebooks/
+|   |-- 01_exploracion_datos.ipynb
+|   |-- 02_preprocesamiento.ipynb
+|   |-- 03_feature_engineering.ipynb
+|   |-- 04_modelado_regresion.ipynb
+|   |-- 05_modelado_clasificacion.ipynb
+|   |-- 06_exploracion_clustering.ipynb
+|   |-- 07_modelado_clustering.ipynb
+|
+|-- reports/                              # Gráficos y material de presentación
+|-- src/                                  # Código reutilizable
+|-- descargar_datos.py
+|-- requirements.txt
+|-- .gitignore
+|-- README.md
+|-- README2.md
 ```
 
-Los archivos originales no se incluyen en el repositorio debido a su tamaño. Para reproducir el análisis, deben descargarse y ubicarse dentro de `data/raw/`.
+## Flujo general de trabajo
 
----
+El proyecto se desarrolló en las siguientes etapas:
 
-## Flujo de trabajo
+1. Exploración de las fuentes y comprensión de la estructura de los datos.
+2. Limpieza, validación e integración mediante `idpozo`.
+3. Construcción de una tabla mensual integrada por pozo.
+4. Ingeniería de variables históricas y temporales.
+5. Definición del objetivo de producción del mes siguiente.
+6. Entrenamiento y evaluación de modelos de regresión y clasificación.
+7. Construcción de perfiles agregados, uno por pozo, para clustering.
+8. Aplicación, evaluación y validación de DBSCAN.
+9. Interpretación de los perfiles con variables productivas, físicas y categóricas.
+10. Preparación de resultados para el storytelling y la presentación final.
 
-### 1. Exploración de datos
+## 1. Análisis exploratorio de datos
 
-En `01_exploracion_datos.ipynb` se realizó el análisis exploratorio inicial de las fuentes de datos.
+En `01_exploracion_datos.ipynb` analizamos las fuentes originales con Pandas y visualizaciones estadísticas.
 
-Se trabajó sobre:
+Se revisaron:
 
-- Dimensiones de los datasets;
-- Nombres y tipos de variables;
-- Valores faltantes;
-- Registros duplicados;
-- Granularidad de cada fuente;
-- Períodos temporales disponibles;
-- Distribución de la producción;
-- Comportamiento de los pozos según su tipo;
-- Características de las formaciones y cuencas;
-- Posibles valores inconsistentes o extremos;
-- Relación entre producción, características del pozo y fracturación.
+- Cantidad de filas y columnas.
+- Nombres y tipos de variables.
+- Valores faltantes.
+- Duplicados e identificadores.
+- Granularidad y período temporal.
+- Distribución de la producción.
+- Tipos de pozos.
+- Cuencas, provincias y formaciones.
+- Diferencias entre las fuentes.
+- Valores extremos e inconsistencias.
+- Relación entre producción y características de los pozos.
 
-El análisis exploratorio permitió conocer la estructura de los datos y tomar decisiones para las etapas posteriores. Entre los aspectos observados se encontraron valores faltantes, distribuciones sesgadas, valores extremos y diferencias importantes entre distintos tipos de pozos y períodos históricos.
+El análisis mostró que las fuentes tenían distintos niveles de detalle y que la producción presentaba una distribución sesgada, con diferencias importantes entre pozos. Estos resultados guiaron las decisiones de limpieza, integración y transformación posteriores.
 
-También se identificó que la producción presenta una fuerte variabilidad entre pozos y que no todas las fuentes tienen la misma granularidad. Por este motivo, antes de realizar los cruces fue necesario revisar la unicidad de las claves y el nivel de detalle de cada archivo.
+## 2. Preprocesamiento e integración
 
-### 2. Preprocesamiento e integración
-
-En `02_preprocesamiento.ipynb` se realizó la limpieza y preparación de las fuentes.
+En `02_preprocesamiento.ipynb` se validaron y limpiaron las fuentes antes de integrarlas.
 
 Las principales tareas fueron:
 
-- Tratamiento de valores inconsistentes;
-- Revisión y normalización de fechas;
-- Corrección de variables de producción y operación;
-- Tratamiento de duplicados;
-- Integración de las fuentes mediante `idpozo`;
-- Preparación de la información de fracturación;
-- Construcción de una tabla mensual por pozo;
-- Creación del objetivo de producción del mes siguiente.
+- Normalización de fechas y nombres de variables.
+- Revisión de unidades.
+- Validación de claves e identificadores.
+- Tratamiento de duplicados.
+- Integración mediante `idpozo`.
+- Incorporación de información de pozos y fracturación.
+- Construcción de una tabla mensual integrada.
+- Validación de la integridad temporal.
+- Creación de la variable objetivo de regresión.
 
-La unidad principal de análisis quedó definida como un registro correspondiente a un pozo en un determinado mes.
+La unidad de análisis para los modelos supervisados quedó definida como un registro de un pozo en un determinado mes.
 
-El objetivo de regresión se definió como:
+## 3. Ingeniería de variables y partición temporal
+
+En `03_feature_engineering.ipynb` se construyeron variables utilizando únicamente la información disponible hasta cada mes de corte.
+
+Se generaron, entre otras:
+
+- Producción del mes de corte.
+- Rezagos de producción.
+- Medias móviles.
+- Desvíos y cambios recientes.
+- Producción acumulada.
+- Producción por día.
+- Meses desde el inicio.
+- Características operativas y geológicas.
+- Información de fracturación.
+- Variables categóricas del pozo.
+
+El objetivo de regresión fue:
 
 ```text
 prod_pet_mes_siguiente
@@ -118,164 +149,63 @@ prod_pet_mes_siguiente
 
 Esta variable representa la producción de petróleo del mismo pozo durante el mes siguiente al mes de corte.
 
-### 3. Ingeniería de variables y partición temporal
+Para evitar utilizar información futura, se utilizaron particiones temporales:
 
-En `03_feature_engineering.ipynb` se construyeron las variables predictoras que representan el historial del pozo y la información disponible al cierre de cada mes.
-
-Se generaron, entre otras:
-
-- Producción del mes de corte;
-- Rezagos de producción;
-- Medias móviles;
-- Desvíos de producción;
-- Cambios absolutos y relativos;
-- Producción acumulada;
-- Producción por día;
-- Meses desde el inicio del pozo;
-- Variables de fracturación;
-- Variables operativas;
-- Características geográficas y geológicas;
-- Variables categóricas del pozo.
-
-La variable de clasificación se definió como:
-
-```text
-clase_prod_pet_mes_siguiente
-```
-
-Esta variable categoriza la producción futura en tres niveles:
-
-- `Baja`;
-- `Media`;
-- `Alta`.
-
-Para evitar mezclar información del futuro con el pasado, se utilizaron particiones temporales:
-
-- **Entrenamiento:** objetivos de febrero a diciembre de 2025.
+- **Entrenamiento:** objetivos desde enero de 2020 hasta diciembre de 2025.
 - **Validación:** objetivos de enero a marzo de 2026.
 - **Test:** objetivos de abril a julio de 2026.
-- **Inferencia:** información disponible hasta julio de 2026 para predecir agosto de 2026.
+- **Inferencia:** información disponible hasta julio de 2026 para estimar agosto de 2026.
 
-Las variables históricas se calcularon utilizando la información temporal disponible para cada pozo. Además, se generó un archivo histórico adicional para evaluar si ampliar la ventana de entrenamiento con objetivos desde 2020 mejoraba el desempeño.
+También se compararon ventanas de entrenamiento más cortas y más extensas. La ventana desde 2020 presentó una mejora moderada y consistente, por lo que fue seleccionada para el modelo final.
 
----
-
-## Modelado de regresión
+## 4. Modelo de regresión
 
 En `04_modelado_regresion.ipynb` se desarrolló el modelo principal del proyecto.
 
-El objetivo es predecir la cantidad de petróleo que producirá cada pozo durante el mes siguiente, expresada en metros cúbicos.
-
-### Modelos evaluados
-
 Se compararon:
 
-- Modelo de persistencia;
-- Random Forest Regressor;
-- Ridge;
+- Modelo de persistencia.
+- Random Forest Regressor.
+- Ridge.
 - Estrategia de dos etapas basada en clasificación y regresión.
 
-El modelo de persistencia se utilizó como referencia. Este modelo supone que la producción del próximo mes será igual a la producción del mes de corte.
+El modelo de persistencia se utilizó como referencia y supone que la producción del próximo mes será igual a la producción del mes de corte.
 
-También se realizó validación temporal mediante distintos pliegues y se compararon configuraciones del Random Forest modificando algunos hiperparámetros, entre ellos:
-
-- `min_samples_leaf`;
-- `max_features`.
-
-### Comparación de ventanas de entrenamiento
-
-Inicialmente, el modelo se entrenaba utilizando objetivos desde 2025. Luego se evaluó si incorporar objetivos desde 2020 mejoraba los resultados.
-
-La comparación se realizó manteniendo constantes:
-
-- Las variables predictoras;
-- El algoritmo;
-- Los hiperparámetros;
-- Los períodos de validación;
-- Las métricas de evaluación.
-
-La ventana desde 2020 obtuvo una mejora moderada y consistente respecto de la ventana desde 2025. Por este motivo, se seleccionó como ventana final el período comprendido entre enero de 2020 y diciembre de 2025.
-
-Los objetivos anteriores a 2020 no se utilizaron como ejemplos directos de entrenamiento. Sin embargo, esos años pueden aportar información histórica para construir variables como la producción acumulada, los rezagos y la antigüedad de los pozos.
-
-### Resultado final de regresión
-
-El modelo seleccionado fue un **Random Forest Regressor** entrenado con objetivos desde enero de 2020 hasta diciembre de 2025.
-
-En el conjunto de test obtuvo:
+El modelo final seleccionado fue un **Random Forest Regressor**. En el conjunto de test se obtuvieron los siguientes resultados:
 
 | Modelo              | MAE (m³) | RMSE (m³) |    R² |
 | ------------------- | -------: | --------: | ----: |
 | Persistencia        |  166,195 |   551,710 | 0,820 |
 | Random Forest final |  133,039 |   393,443 | 0,908 |
 
-El modelo final:
+Respecto de la persistencia, el modelo final:
 
-- Redujo aproximadamente un 20 % el MAE respecto de la persistencia;
-- Redujo aproximadamente un 29 % el RMSE;
-- Obtuvo un R² de 0,908;
+- Redujo aproximadamente un 20 % el MAE.
+- Redujo aproximadamente un 29 % el RMSE.
+- Obtuvo un R² de 0,908.
 - No generó predicciones negativas.
 
-El análisis por grupos mostró que el modelo obtiene mejores resultados en los registros con producción positiva. En los registros cuya producción real fue igual a cero se observó una leve tendencia a sobreestimar, aunque el error se mantuvo considerablemente menor que en los casos de producción positiva.
+El modelo fue utilizado para estimar la producción de agosto de 2026 a partir de la información disponible hasta julio. Se generaron predicciones para 5.062 pozos. Como la producción real de agosto todavía no está disponible, esas predicciones no tienen una evaluación posterior.
 
-### Inferencia de producción para agosto de 2026
+## 5. Modelo de clasificación
 
-Una vez entrenado y evaluado el modelo final, se utilizó el conjunto de inferencia correspondiente a julio de 2026.
+En `05_modelado_clasificacion.ipynb` se desarrolló un modelo complementario para categorizar la producción futura.
 
-Cada fila de ese conjunto representa la situación de un pozo con la información disponible hasta julio de 2026. El modelo utiliza esas variables para estimar la producción de petróleo del mismo pozo durante agosto de 2026.
-
-Se generaron predicciones para:
-
-- 5.062 registros;
-- 5.062 pozos;
-- mes de corte: julio de 2026;
-- mes objetivo: agosto de 2026.
-
-El archivo generado es:
+La variable objetivo fue:
 
 ```text
-data/processed/predicciones_produccion_agosto_2026.csv
+clase_prod_pet_mes_siguiente
 ```
 
-Como todavía no se conoce la producción real de agosto de 2026, estas predicciones no pueden evaluarse mediante MAE, RMSE o R².
+Las categorías utilizadas fueron:
 
----
-
-## Modelado de clasificación
-
-En `05_modelado_clasificacion.ipynb` se desarrolló un modelo complementario de clasificación multiclase.
-
-El objetivo es categorizar la producción futura como:
-
-- `Baja`;
-- `Media`;
+- `Baja`.
+- `Media`.
 - `Alta`.
 
-La clasificación no busca estimar el volumen exacto en metros cúbicos. Su objetivo es brindar una interpretación más general del nivel de producción esperado.
+Se comparó el modelo con una referencia que siempre predice la clase mayoritaria. El clasificador seleccionado fue un **Random Forest Classifier**, con `max_features=0,7`.
 
-### Modelo de referencia
-
-Como referencia se utilizó un modelo que siempre predice la clase mayoritaria del conjunto de entrenamiento.
-
-En validación obtuvo:
-
-- accuracy: 0,353;
-- balanced accuracy: 0,333;
-- F1 macro: 0,174.
-
-### Clasificador seleccionado
-
-Se entrenó un **Random Forest Classifier** utilizando las mismas variables predictoras principales que en la regresión.
-
-También se realizó una comparación breve de hiperparámetros mediante el ajuste de `max_features`. La configuración seleccionada utilizó:
-
-```text
-max_features = 0,7
-```
-
-### Resultado final de clasificación
-
-En el conjunto de test, el clasificador obtuvo:
+En el conjunto de test obtuvo:
 
 | Métrica           | Resultado |
 | ----------------- | --------: |
@@ -285,79 +215,189 @@ En el conjunto de test, el clasificador obtuvo:
 | Recall macro      |     0,932 |
 | F1 macro          |     0,933 |
 
-El desempeño fue similar al observado en validación, lo que indica que el modelo conserva un comportamiento estable al evaluarse sobre meses posteriores.
+El modelo presentó un desempeño equilibrado entre las tres clases. La categoría `Media` fue la más difícil de distinguir, porque se encuentra entre los niveles bajo y alto.
 
-La clase `Media` presentó mayores dificultades que `Baja` y `Alta`, principalmente porque representa una categoría intermedia y puede confundirse con las clases vecinas.
+También se generaron categorías estimadas para agosto de 2026. Estas predicciones no pueden evaluarse todavía porque aún no se conoce la producción real de ese mes.
 
-La clasificación se presenta como un complemento del modelo de regresión. La regresión responde directamente a la pregunta principal del proyecto —cuánto se espera producir—, mientras que la clasificación resume esa producción en niveles más fáciles de interpretar.
+## 6. Exploración para clustering
 
-### Inferencia de categorías para agosto de 2026
+En `06_exploracion_clustering.ipynb` se cambió la unidad de análisis. Mientras que los modelos supervisados trabajan con registros mensuales, el clustering utiliza una fila por pozo.
 
-También se puede aplicar el clasificador final al conjunto de inferencia correspondiente a julio de 2026 para obtener una categoría estimada de producción para agosto de 2026.
+El dataset integrado contiene:
 
-El archivo generado es:
+- 421.046 registros mensuales.
+- 5.089 pozos.
+- Período desde enero de 2006 hasta julio de 2026.
+
+Se conservaron los pozos con al menos seis meses observados. Como resultado se obtuvieron:
+
+- 4.839 pozos.
+- Una fila por pozo.
+- 29 columnas con información productiva, temporal, física, geológica y categórica.
+
+Para cada pozo se construyeron perfiles con variables como:
+
+- Producción media, mediana, máxima y acumulada.
+- Desvío de producción.
+- Meses observados y meses productivos.
+- Porcentaje de meses productivos.
+- Producción del último mes.
+- Promedios móviles de 3 y 6 meses.
+- Cambio reciente.
+- Meses desde el inicio.
+- Profundidad, cota y `tef`.
+- Estado, extracción, tipo de pozo, empresa, cuenca, provincia, formación y recurso.
+
+Las variables categóricas no se utilizaron para formar los grupos. Se conservaron para interpretar los clusters después del modelado.
+
+## 7. Modelo de clustering con DBSCAN
+
+En `07_modelado_clustering.ipynb` se aplicó DBSCAN sobre 16 variables numéricas.
+
+Antes del modelado:
+
+- Se excluyeron identificadores, fechas y variables categóricas.
+- Se aplicó `log1p` a variables productivas y de cantidad de meses.
+- Se mantuvieron sin logaritmo las variables con valores negativos o con una interpretación diferente.
+- Se utilizó `StandardScaler` para llevar las variables a una escala comparable.
+
+DBSCAN fue elegido porque:
+
+- No exige definir previamente la cantidad de grupos.
+- Trabaja con zonas de distinta densidad.
+- Permite detectar observaciones que no pertenecen claramente a ningún grupo.
+- Identifica esas observaciones con la etiqueta `-1`.
+
+Se evaluaron distintas combinaciones de `eps` y `min_samples` mediante una grilla. Para comparar las configuraciones se utilizaron:
+
+- Cantidad de grupos.
+- Porcentaje de ruido.
+- Porcentaje de pozos asignados.
+- Tamaño del grupo mayor y menor.
+- Silhouette.
+- Calinski-Harabasz.
+- Davies-Bouldin.
+
+La configuración seleccionada fue:
 
 ```text
-data/processed/predicciones_clasificacion_agosto_2026.csv
+eps = 1,2
+min_samples = 24
 ```
 
-Estas categorías no pueden evaluarse todavía porque no se conoce la producción real de agosto de 2026.
+El modelo produjo:
 
----
+- 4 grupos.
+- 3.979 pozos asignados.
+- 860 pozos considerados ruido.
+- 82,23 % de pozos asignados.
+- 17,77 % de ruido.
 
-## Resultados y conclusiones
+La configuración con mayor silhouette no fue seleccionada automáticamente porque dejaba fuera una proporción excesiva de pozos. También se descartaron configuraciones que concentraban más del 98 % de los pozos en un único grupo.
 
-El desarrollo realizado permitió completar un flujo de aprendizaje supervisado desde la exploración inicial hasta la evaluación de los modelos.
+## 8. Interpretación de los clusters
 
-El modelo principal de regresión:
+Los perfiles productivos principales fueron:
 
-- Utiliza información histórica y características de los pozos;
-- Respeta el orden temporal de los datos;
-- Supera a la referencia de persistencia;
-- Fue evaluado mediante validación y test;
-- Permite generar estimaciones de producción para un mes futuro.
+### Cluster 0
 
-El modelo complementario de clasificación:
+Es el grupo más numeroso, con 3.082 pozos. Presenta la mayor producción media, alta continuidad productiva y una proporción elevada de meses productivos. Está compuesto principalmente por pozos petrolíferos, asociados con Vaca Muerta y recursos shale.
 
-- Distingue entre niveles bajo, medio y alto de producción;
-- Supera ampliamente a la referencia de clase mayoritaria;
-- Presenta un desempeño equilibrado entre las tres categorías;
-- Permite resumir la predicción de manera más sencilla.
+### Cluster 1
 
-Los resultados muestran que el modelo puede encontrar patrones útiles en el historial productivo y en las características de los pozos. Sin embargo, las predicciones no deben interpretarse como valores exactos para todos los casos. Los errores son mayores en algunos pozos de producción elevada y en situaciones donde la producción futura presenta variaciones difíciles de anticipar.
+Está compuesto por 336 pozos. Presenta una producción media mucho menor que el Cluster 0, menor continuidad y producción reciente casi nula. Su composición es más heterogénea y contiene una proporción importante de pozos clasificados como `Otro tipo`.
 
----
+### Cluster 2
 
-## Estado actual del proyecto
+Está compuesto por 328 pozos. Presenta producción de petróleo prácticamente nula y una proporción muy baja de meses productivos. Está formado principalmente por pozos gasíferos y tiene una mayor proporción de recursos tight, con presencia destacada de la formación Lajas.
 
-Actualmente se encuentran completadas las siguientes etapas:
+### Cluster 3
 
-- Exploración y análisis de los datos;
-- Limpieza y preprocesamiento;
-- Integración de las fuentes;
-- Ingeniería de variables;
-- Definición del objetivo temporal;
-- Partición cronológica de los datos;
-- Modelo supervisado de regresión;
-- Modelo supervisado de clasificación;
-- Ajuste básico de hiperparámetros;
-- Validación temporal;
-- Evaluación en el conjunto de test;
-- Análisis de errores;
-- Inferencia de producción y categorías para agosto de 2026.
+Está compuesto por 233 pozos. También presenta producción petrolera prácticamente nula y muy pocos meses productivos. Está formado principalmente por pozos gasíferos y recursos tight, con mayor presencia relativa de Vaca Muerta.
 
-Como posibles etapas posteriores quedan:
+### Ruido
 
-1. Desarrollar un modelo de clustering a partir de las variables seleccionadas;
-2. Justificar la elección del algoritmo y de las variables utilizadas;
-3. Analizar y mejorar los grupos obtenidos según un criterio explícito;
-4. Comparar los perfiles de pozos identificados;
-5. Preparar el storytelling y la presentación oral final;
-6. Documentar las conclusiones generales del proyecto.
+Los 860 pozos etiquetados como `-1` no forman un grupo homogéneo. Son perfiles que no alcanzaron la densidad necesaria para integrarse a un cluster y presentan características diversas. Por este motivo, se los utiliza como referencia, pero no se les asigna un perfil único.
 
----
+## 9. PCA y comparación de representaciones
 
-## Instalación y ejecución
+Se aplicó PCA como herramienta complementaria para estudiar la estructura de los datos y facilitar la visualización.
+
+Las primeras siete componentes explicaron aproximadamente el 97 % de la variabilidad. Sin embargo, al aplicar DBSCAN sobre esas siete componentes, las mejores configuraciones produjeron solamente dos grupos, con más del 98 % de los pozos concentrados en un único grupo.
+
+Por este motivo, PCA no fue utilizada como representación principal del clustering. Se mantuvo el modelo original de DBSCAN sobre las 16 variables transformadas y escaladas.
+
+## 10. Estabilidad del modelo
+
+La estabilidad se evaluó aplicando nuevamente DBSCAN sobre diez muestras aleatorias del 80 % de los perfiles.
+
+Los resultados fueron:
+
+- Entre 5 y 6 grupos en las muestras.
+- Porcentaje medio de ruido de 22,14 %.
+- ARI medio respecto del modelo completo de 0,897.
+- Desvío estándar del ARI de 0,017.
+
+El ARI cercano a 1 indica que las asignaciones generales se mantuvieron similares. La diferencia en la cantidad de grupos y el aumento del ruido son esperables porque al trabajar con menos observaciones cambia la densidad local.
+
+Estos resultados respaldan que la estructura principal encontrada por DBSCAN es estable.
+
+## 11. Interpretación mediante variables categóricas
+
+Luego de obtener los grupos, se analizaron variables categóricas que no participaron en el cálculo de las distancias:
+
+- Cuenca.
+- Provincia.
+- Formación.
+- Tipo de pozo.
+- Tipo de extracción.
+- Estado.
+- Subtipo de recurso.
+
+Los principales hallazgos fueron:
+
+- La cuenca Neuquina predomina en todos los grupos.
+- Vaca Muerta es la formación más frecuente, aunque Lajas tiene mayor presencia relativa en el Cluster 2.
+- El Cluster 0 presenta predominio de pozos petrolíferos.
+- Los Clusters 2 y 3 están compuestos principalmente por pozos gasíferos.
+- Los Clusters 2 y 3 presentan una mayor proporción de recursos tight.
+- El estado más reciente y el sistema de extracción ayudan a describir los grupos, pero no explican por sí solos todo el comportamiento productivo.
+
+Para las variables categóricas que cambian a lo largo del tiempo se conservó el último valor disponible por pozo, hasta julio de 2026. Por lo tanto, el estado y el sistema de extracción representan la situación más reciente registrada y no todo el historial del pozo.
+
+Las asociaciones observadas son descriptivas y no deben interpretarse como relaciones causales.
+
+## 12. Limitaciones
+
+Los resultados deben interpretarse considerando las siguientes limitaciones:
+
+- DBSCAN depende de la selección de `eps` y `min_samples`.
+- La inclusión o exclusión de variables puede modificar las distancias y los grupos.
+- Las variables productivas fueron resumidas en una fila por pozo, por lo que no se conserva todo el detalle mensual.
+- La etiqueta `-1` representa ruido y no un grupo homogéneo.
+- Las variables categóricas se utilizaron después del clustering y no formaron parte del modelo.
+- El estado y el sistema de extracción representan el último registro disponible, no toda la historia.
+- Las métricas internas ayudan a comparar configuraciones, pero no determinan por sí solas cuál es el agrupamiento correcto.
+- La estabilidad se evaluó mediante muestras del 80 % de los perfiles y no elimina completamente la sensibilidad de DBSCAN.
+- Los clusters deben interpretarse como perfiles descriptivos, no como categorías definitivas ni como relaciones causales.
+
+## Archivos de resultados
+
+La notebook de clustering exporta los resultados en:
+
+```text
+data/processed/clustering/
+|-- estabilidad_dbscan.csv
+|-- grilla_dbscan.csv
+|-- grilla_dbscan_pca.csv
+|-- perfiles_con_clusters.csv
+|-- resumen_perfiles.csv
+|-- resumen_productivo_clusters.csv
+```
+
+También se generan en `data/processed/` los datasets utilizados por los modelos supervisados y las predicciones correspondientes a agosto de 2026.
+
+## Instalación y reproducción
 
 Se recomienda utilizar Python 3.11 o una versión compatible.
 
@@ -367,7 +407,7 @@ Se recomienda utilizar Python 3.11 o una versión compatible.
 python -m venv .venv
 ```
 
-### Activar el entorno en Windows PowerShell
+### Activarlo en Windows PowerShell
 
 ```powershell
 .venv\Scripts\Activate.ps1
@@ -376,28 +416,42 @@ python -m venv .venv
 ### Instalar las dependencias
 
 ```powershell
-pip install --upgrade pip
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 ### Descargar los datos
 
-Si los archivos no se encuentran disponibles localmente, pueden descargarse utilizando:
+Si los archivos no se encuentran en `data/raw/`, se puede ejecutar:
 
 ```powershell
 python descargar_datos.py
 ```
 
-El script guarda los archivos dentro de `data/raw/` y evita volver a descargar aquellos que ya existen.
+Luego se deben ejecutar las notebooks en este orden:
 
-Para ejecutar las notebooks desde Visual Studio Code, se debe seleccionar el entorno `.venv` como kernel de Python.
+```text
+01_exploracion_datos.ipynb
+02_preprocesamiento.ipynb
+03_feature_engineering.ipynb
+04_modelado_regresion.ipynb
+05_modelado_clasificacion.ipynb
+06_exploracion_clustering.ipynb
+07_modelado_clustering.ipynb
+```
 
----
+Las notebooks deben ejecutarse seleccionando el entorno `.venv` como kernel de Python. Las rutas están preparadas para ejecutarse desde el directorio `notebooks/`.
 
-## Notas
+## Entrega final
 
-Las particiones se realizaron respetando el orden temporal para evitar utilizar información futura durante el entrenamiento.
+El repositorio contiene:
 
-El preprocesamiento y las transformaciones se ajustan utilizando los datos de entrenamiento. La validación se utiliza para comparar modelos y configuraciones, mientras que el conjunto de test se reserva para informar el desempeño final.
-
-La inferencia para agosto de 2026 se realiza utilizando las variables disponibles hasta julio de 2026. Como todavía no se conoce la producción real de agosto, esas predicciones no cuentan aún con una evaluación mediante métricas.
+- Análisis exploratorio.
+- Preprocesamiento e integración.
+- Ingeniería de variables.
+- Modelo supervisado de regresión.
+- Modelo supervisado de clasificación.
+- Modelo no supervisado de clustering.
+- Evaluación, comparación y limitaciones.
+- Resultados exportados.
+- Documentación del flujo completo.
