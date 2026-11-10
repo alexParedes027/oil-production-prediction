@@ -1,6 +1,16 @@
 # Exploración
 
-Esta carpeta contiene análisis adicionales que **no forman parte de la entrega principal**. Parten de los archivos que generan las notebooks 01 a 03 en `data/processed` y usan la misma configuración de Random Forest que la notebook 04, entrenada con los últimos 24 meses.
+> **Trabajo extra, por curiosidad.** Todo lo que hay en esta carpeta (notebooks, scripts, resultados y observaciones) surgió de seguir jugando con los datos después de terminar el proyecto, para responder preguntas que nos fueron apareciendo. No forma parte de la entrega principal ni es necesario para evaluarla, y ninguna de sus conclusiones modifica los resultados de las notebooks 01 a 07.
+>
+> Por ser exploratorio, el nivel de validación es menor que el del proyecto: algunas decisiones se tomaron mirando los mismos meses con los que después se evaluaron, y los resultados deben leerse como pistas para seguir investigando, no como pronósticos oficiales.
+
+Las preguntas que nos hicimos fueron tres:
+
+1. El pronóstico de agosto no incluye los pozos que se conectan durante el mes. ¿Cuánto cambia el total si los sumamos?
+2. El pronóstico es un único número. ¿Entre qué valores puede quedar realmente la producción?
+3. Un mes de anticipación es poco para planificar. ¿Qué pasa si pronosticamos a 3 y 6 meses?
+
+Los análisis parten de los archivos que generan las notebooks 01 a 03 en `data/processed` y usan la misma configuración de Random Forest que la notebook 04, entrenada con los últimos 24 meses.
 
 | Notebook | Pregunta |
 |---|---|
