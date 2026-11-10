@@ -69,7 +69,7 @@ En `03_feature_engineering.ipynb` construimos variables utilizando únicamente l
 
 El objetivo `prod_pet_mes_siguiente` representa la producción de petróleo del mismo pozo durante el mes posterior al corte. Para evitar el uso de información futura, dividimos los datos cronológicamente:
 
-- **Entrenamiento:** Enero de 2020 a diciembre de 2025.
+- **Entrenamiento:** Febrero a diciembre de 2025 para seleccionar el modelo; el modelo final de regresión usa los últimos 24 meses (enero de 2024 a diciembre de 2025).
 - **Validación:** Enero a marzo de 2026.
 - **Test:** Abril a julio de 2026.
 - **Inferencia:** Información hasta julio de 2026 para estimar agosto de 2026.
@@ -99,13 +99,15 @@ El modelo final fue un **Random Forest Regressor**, porque superó la referencia
 | Modelo              | MAE (m³) | RMSE (m³) |    R² |
 | ------------------- | -------: | --------: | ----: |
 | Persistencia        |  166,195 |   551,710 | 0,820 |
-| Random Forest final |  133,616 |   394,712 | 0,908 |
+| Random Forest final |  134,150 |   398,588 | 0,906 |
 
-El modelo redujo aproximadamente un 20 % el MAE y un 29 % el RMSE respecto de la persistencia, y no produjo predicciones negativas.
+El modelo redujo aproximadamente un 19 % el MAE y un 28 % el RMSE respecto de la persistencia, y no produjo predicciones negativas.
 
 `GridSearchCV` evaluó 16 combinaciones de Random Forest en los tres pliegues temporales y eligió `max_depth=None`, `min_samples_leaf=5` y `max_features=0.7`; limitar la profundidad a 8 niveles dio los peores resultados. En los pliegues, el Random Forest obtuvo un MAE promedio de 131,39 m³ (desvío 3,50) frente a 163,87 m³ de la persistencia, y la mejora se mantuvo en los tres períodos. Para Ridge, la búsqueda eligió `alpha=1000` evaluando el MAE con las predicciones negativas recortadas en cero; aun así, Ridge quedó lejos de Random Forest (MAE de 151,87 m³ contra 128,36 m³ en validación), lo que indica que la relación entre las variables y la producción futura no es lineal.
 
-Para estimar la producción de agosto de 2026 de 5.062 pozos, reentrenamos la configuración final con todos los objetivos conocidos, desde enero de 2020 hasta julio de 2026. Esas predicciones no se evaluaron dentro de este trabajo porque el dataset utilizado llega hasta julio de 2026.
+También comparamos cuánta historia conviene usar para entrenar: los objetivos desde febrero de 2025, los últimos 24 meses y los objetivos desde 2020. Las dos ventanas ampliadas superaron a la de 2025, pero entre ellas las diferencias fueron menores a 1,3 m³ de MAE (la de 24 meses ganó en los tres pliegues y la de 2020 en validación). Elegimos los últimos 24 meses porque logran el mismo desempeño con el 40 % de los registros y reflejan mejor las condiciones recientes.
+
+Para estimar la producción de agosto de 2026 de 5.062 pozos, reentrenamos la configuración final con los últimos 24 meses conocidos, desde agosto de 2024 hasta julio de 2026. Esas predicciones no se evaluaron dentro de este trabajo porque el dataset utilizado llega hasta julio de 2026.
 
 ## 4. Modelo supervisado de clasificación
 
@@ -150,7 +152,7 @@ Sobre los mismos pozos que DBSCAN asignó a un grupo, el modelo jerárquico obtu
 
 ## 6. Conclusiones generales
 
-El análisis exploratorio nos permitió entender que las fuentes tenían distintos niveles de detalle, que la producción presentaba una distribución sesgada y que existían diferencias importantes según la cuenca, la formación y el tipo de pozo. A partir de esa observación, la regresión fue el enfoque principal: el Random Forest logró un R² de 0,908 y mejoró el MAE y el RMSE respecto del modelo de persistencia, por lo que resultó adecuado para estimar la producción del mes siguiente. La clasificación complementó esa predicción al ordenar los pozos en niveles bajo, medio y alto, con un F1 macro de 0,934 y un desempeño equilibrado entre las clases. En ambos modelos supervisados, la validación cruzada temporal mostró que la mejora frente a las referencias se mantiene en distintos períodos, y `GridSearchCV` permitió elegir los hiperparámetros de forma sistemática. Por su parte, DBSCAN permitió reconocer perfiles productivos diferentes: el Cluster 0 concentró los pozos con mayor producción y continuidad, mientras que los Clusters 2 y 3 reunieron principalmente perfiles gasíferos, con baja producción de petróleo y mayor presencia de recursos tight. El clustering jerárquico complementó ese análisis al separar, dentro del grupo más productivo de DBSCAN, los pozos petrolíferos de alta producción de los pozos maduros de baja producción continua. En conjunto, el proyecto muestra que la historia productiva, las características del pozo y una preparación temporalmente consistente permiten construir predicciones útiles y obtener una visión más completa del comportamiento de los pozos.
+El análisis exploratorio nos permitió entender que las fuentes tenían distintos niveles de detalle, que la producción presentaba una distribución sesgada y que existían diferencias importantes según la cuenca, la formación y el tipo de pozo. A partir de esa observación, la regresión fue el enfoque principal: el Random Forest logró un R² de 0,906 y mejoró el MAE y el RMSE respecto del modelo de persistencia, por lo que resultó adecuado para estimar la producción del mes siguiente. La clasificación complementó esa predicción al ordenar los pozos en niveles bajo, medio y alto, con un F1 macro de 0,934 y un desempeño equilibrado entre las clases. En ambos modelos supervisados, la validación cruzada temporal mostró que la mejora frente a las referencias se mantiene en distintos períodos, y `GridSearchCV` permitió elegir los hiperparámetros de forma sistemática. Por su parte, DBSCAN permitió reconocer perfiles productivos diferentes: el Cluster 0 concentró los pozos con mayor producción y continuidad, mientras que los Clusters 2 y 3 reunieron principalmente perfiles gasíferos, con baja producción de petróleo y mayor presencia de recursos tight. El clustering jerárquico complementó ese análisis al separar, dentro del grupo más productivo de DBSCAN, los pozos petrolíferos de alta producción de los pozos maduros de baja producción continua. En conjunto, el proyecto muestra que la historia productiva, las características del pozo y una preparación temporalmente consistente permiten construir predicciones útiles y obtener una visión más completa del comportamiento de los pozos.
 
 ## 7. Limitaciones
 
