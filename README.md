@@ -123,7 +123,7 @@ El clasificador obtuvo los siguientes resultados en el conjunto de test:
 
 En la validación cruzada temporal, el F1 macro fue de 0,933, 0,928 y 0,943 en los tres pliegues (promedio 0,935), frente a aproximadamente 0,18 de la referencia de clase mayoritaria. `GridSearchCV` evaluó 12 combinaciones de `max_depth`, `min_samples_leaf` y `max_features`, con resultados muy similares entre sí (F1 macro entre 0,934 y 0,935), por lo que el modelo es robusto a estos hiperparámetros; la configuración final usa `max_depth=None`, `min_samples_leaf=20` y `max_features=0.7`. Los valores faltantes se tratan igual que en la regresión: las categorías faltantes se representan como `"Sin dato"` y las variables numéricas imputadas llevan columnas indicadoras.
 
-Las métricas muestran un desempeño equilibrado entre las tres clases. La categoría `Media` fue la más difícil de distinguir porque se encuentra entre los niveles bajo y alto. También se generaron categorías estimadas para agosto de 2026, que no se evaluaron dentro del período disponible en este trabajo.
+Las métricas muestran un desempeño equilibrado entre las tres clases. La categoría `Media` fue la más difícil de distinguir porque se encuentra entre los niveles bajo y alto. Para estimar las categorías de agosto de 2026, reentrenamos la configuración final sumando el conjunto de test, con objetivos desde febrero de 2025 hasta julio de 2026, igual que en la regresión. Esas categorías no se evaluaron dentro del período disponible en este trabajo.
 
 ## 5. Modelo no supervisado de clustering
 
