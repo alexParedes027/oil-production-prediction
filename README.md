@@ -179,8 +179,8 @@ oil-production-prediction/
 │   ├── 05_modelado_clasificacion.ipynb
 │   ├── 06_exploracion_clustering.ipynb
 │   └── 07_modelado_clustering.ipynb
-├── reports/                   # Gráficos y material de presentación
-├── src/                       # Código reutilizable
+├── presentacion/               # Presentación final (PPTX, PDF y HTML)
+├── exploracion/                # Análisis extra, fuera de la entrega principal
 ├── descargar_datos.py
 ├── requirements.txt
 └── README.md
@@ -239,3 +239,9 @@ La guía completa de cada transformación, modelo, métrica y decisión se encue
 ## Entrega final y storytelling
 
 El repositorio reúne las fuentes de datos, el análisis exploratorio, la preparación, los modelos supervisados y el modelo no supervisado. Para la presentación oral contamos la historia del proyecto a partir de las preguntas iniciales, los hallazgos del AED, las decisiones de modelado, los resultados obtenidos y las limitaciones.
+
+La presentación final se encuentra en [`presentacion/`](presentacion/), en formato PowerPoint, PDF y HTML. Está pensada para una audiencia de gestión sin conocimientos de estadística: responde si la producción de agosto de 2026 sube o baja, qué lo explica y qué recomendamos hacer. Sus números provienen de las notebooks 04, 05 y 07.
+
+## Exploración adicional
+
+La carpeta [`exploracion/`](exploracion/) reúne análisis que hicimos por curiosidad después de terminar el proyecto. No forma parte de la entrega principal y no modifica los resultados de las notebooks 01 a 07. Explora tres preguntas: cuánto aportan los pozos que se conectan después del mes de corte, entre qué valores puede quedar la producción total y qué producción esperamos a 3 y 6 meses. Los detalles están en su [README](exploracion/README.md).
