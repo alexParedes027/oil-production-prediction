@@ -180,7 +180,7 @@ oil-production-prediction/
 │   ├── 06_exploracion_clustering.ipynb
 │   └── 07_modelado_clustering.ipynb
 ├── presentacion/
-|    ├── presentacion.pdf  # Material de presentación
+|    └── presentacion.pdf  # Material de presentación
 ├── descargar_datos.py
 ├── requirements.txt
 └── README.md
