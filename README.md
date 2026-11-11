@@ -69,7 +69,7 @@ En `03_feature_engineering.ipynb` construimos variables utilizando únicamente l
 
 El objetivo `prod_pet_mes_siguiente` representa la producción de petróleo del mismo pozo durante el mes posterior al corte. Para evitar el uso de información futura, dividimos los datos cronológicamente:
 
-- **Entrenamiento:** Febrero a diciembre de 2025 para seleccionar el modelo; el modelo final de regresión usa los últimos 24 meses (enero de 2024 a diciembre de 2025).
+- **Entrenamiento y selección:** Objetivos de febrero a diciembre de 2025, utilizando pliegues temporales; para la evaluación final se seleccionó la ventana de los últimos 24 meses (enero de 2024 a diciembre de 2025).
 - **Validación:** Enero a marzo de 2026.
 - **Test:** Abril a julio de 2026.
 - **Inferencia:** Información hasta julio de 2026 para estimar agosto de 2026.
@@ -80,11 +80,11 @@ Esta estrategia permite evaluar los modelos en un escenario más parecido al uso
 
 Para que la evaluación no dependa de una única ventana, ambos modelos supervisados utilizan una **validación cruzada temporal** con tres pliegues definidos por el mes del objetivo, dentro del período de entrenamiento:
 
-| Pliegue | Entrenamiento (objetivos) | Validación (objetivos) |
-| ------- | ------------------------- | ---------------------- |
-| 1       | febrero a julio de 2025   | agosto y septiembre de 2025 |
+| Pliegue | Entrenamiento (objetivos)    | Validación (objetivos)      |
+| ------- | ---------------------------- | --------------------------- |
+| 1       | febrero a julio de 2025      | agosto y septiembre de 2025 |
 | 2       | febrero a septiembre de 2025 | octubre y noviembre de 2025 |
-| 3       | febrero a noviembre de 2025 | diciembre de 2025 |
+| 3       | febrero a noviembre de 2025  | diciembre de 2025           |
 
 Los pliegues siguen el esquema de `TimeSeriesSplit` (entrenamiento creciente y validación siempre posterior), pero se construyen por mes y no por posición de fila: como cada mes contiene miles de pozos, un corte por posición podría separar un mismo mes entre entrenamiento y validación. Descartamos una validación agrupada por pozo porque mezclaría meses y permitiría entrenar con información posterior a la evaluada.
 
@@ -94,7 +94,7 @@ Sobre esos pliegues aplicamos **`GridSearchCV`** para seleccionar automáticamen
 
 En `04_modelado_regresion.ipynb` comparamos un modelo de persistencia, Random Forest Regressor, Ridge y una estrategia de dos etapas basada en clasificación y regresión. La persistencia se utilizó como referencia y supone que la producción del próximo mes será igual a la del mes de corte.
 
-El modelo final fue un **Random Forest Regressor**, porque superó la referencia en el conjunto de test:
+El algoritmo seleccionado continuó siendo **Random Forest Regressor**, pero sus hiperparámetros y ventana de entrenamiento se eligieron mediante validación temporal. En la evaluación final sobre el conjunto de test, superó la referencia:
 
 | Modelo              | MAE (m³) | RMSE (m³) |    R² |
 | ------------------- | -------: | --------: | ----: |
@@ -107,7 +107,7 @@ El modelo redujo aproximadamente un 19 % el MAE y un 28 % el RMSE respecto de la
 
 También comparamos cuánta historia conviene usar para entrenar: los objetivos desde febrero de 2025, los últimos 24 meses y los objetivos desde 2020. Las dos ventanas ampliadas superaron a la de 2025, pero entre ellas las diferencias fueron menores a 1,3 m³ de MAE (la de 24 meses ganó en los tres pliegues y la de 2020 en validación). Elegimos los últimos 24 meses porque logran el mismo desempeño con el 40 % de los registros y reflejan mejor las condiciones recientes.
 
-Para estimar la producción de agosto de 2026 de 5.062 pozos, reentrenamos la configuración final con los últimos 24 meses conocidos, desde agosto de 2024 hasta julio de 2026. Esas predicciones no se evaluaron dentro de este trabajo porque el dataset utilizado llega hasta julio de 2026.
+Para estimar la producción de agosto de 2026 de 5.062 pozos, reentrenamos esa misma configuración con los últimos 24 meses conocidos, desde agosto de 2024 hasta julio de 2026. Esas predicciones no se evaluaron dentro de este trabajo porque el dataset utilizado llega hasta julio de 2026.
 
 ## 4. Modelo supervisado de clasificación
 
@@ -141,12 +141,12 @@ Como controles complementarios, evaluamos PCA y la estabilidad del modelo. PCA p
 
 Como modelo alternativo aplicamos **clustering jerárquico aglomerativo** (enlace Ward) sobre las mismas 16 variables. A partir del dendrograma y de las métricas internas elegimos cuatro grupos. A diferencia de DBSCAN, el modelo asigna todos los pozos y divide el cluster dominante de DBSCAN (63,69 % de los pozos) en dos perfiles distintos:
 
-| Grupo jerárquico | Pozos | Perfil |
-| ---------------- | ----: | ------ |
-| 0 | 1.971 | Petrolíferos shale de alta producción, más jóvenes y profundos |
-| 1 | 1.454 | Maduros de baja producción continua, mayormente gasíferos y tight |
-| 2 |   692 | Sin producción de petróleo, mayormente gasíferos y tight |
-| 3 |   722 | Producción interrumpida: produjeron en parte de su historia pero no recientemente |
+| Grupo jerárquico | Pozos | Perfil                                                                            |
+| ---------------- | ----: | --------------------------------------------------------------------------------- |
+| 0                | 1.971 | Petrolíferos shale de alta producción, más jóvenes y profundos                    |
+| 1                | 1.454 | Maduros de baja producción continua, mayormente gasíferos y tight                 |
+| 2                |   692 | Sin producción de petróleo, mayormente gasíferos y tight                          |
+| 3                |   722 | Producción interrumpida: produjeron en parte de su historia pero no recientemente |
 
 Sobre los mismos pozos que DBSCAN asignó a un grupo, el modelo jerárquico obtuvo mejores métricas internas (silhouette de 0,424 contra 0,272 y Davies-Bouldin de 1,083 contra 1,136), aunque una estabilidad algo menor (ARI promedio de 0,861 contra 0,897). Por eso presentamos ambos modelos como complementarios: DBSCAN es más estable y detecta pozos atípicos, y el modelo jerárquico ofrece una segmentación completa y más detallada.
 
