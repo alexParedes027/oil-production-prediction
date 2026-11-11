@@ -179,8 +179,8 @@ oil-production-prediction/
 │   ├── 05_modelado_clasificacion.ipynb
 │   ├── 06_exploracion_clustering.ipynb
 │   └── 07_modelado_clustering.ipynb
-├── reports/                   # Gráficos y material de presentación
-├── src/                       # Código reutilizable
+├── presentacion/
+|    ├── presentacion.pdf  # Material de presentación
 ├── descargar_datos.py
 ├── requirements.txt
 └── README.md
